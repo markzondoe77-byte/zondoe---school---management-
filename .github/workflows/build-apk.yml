@@ -39,7 +39,42 @@ jobs:
           PROJECT_DIR=$(find project -name package.json -type f -print -quit | xargs dirname)
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Project directory: $PROJECT_DIR"
+      - name: Fix TypeScript menu definition
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
 
+          p = Path("src/App.tsx")
+          s = p.read_text()
+
+          start = s.index("const menu:")
+          end = s.index("];", start) + 2
+
+          menu = """const menu:{key:ModuleKey;label:string;icon:string}[]=[
+          {key:"dashboard",label:"Dashboard",icon:"⌂"},
+          {key:"onboarding",label:"School Registration",icon:"＋"},
+          {key:"students",label:"Students",icon:"👤"},
+          {key:"staff",label:"Teachers & Staff",icon:"★"},
+          {key:"classes",label:"Classes & Subjects",icon:"▦"},
+          {key:"attendance",label:"Attendance",icon:"✓"},
+          {key:"fees",label:"Fees",icon:"$"},
+          {key:"payments",label:"Payments",icon:"₿"},
+          {key:"exams",label:"Exams & Results",icon:"A"},
+          {key:"timetable",label:"Timetable",icon:"▤"},
+          {key:"assignments",label:"Assignments",icon:"✎"},
+          {key:"announcements",label:"Announcements",icon:"!"},
+          {key:"reports",label:"Reports & Exports",icon:"▥"},
+          {key:"expenses",label:"Expenses",icon:"−"},
+          {key:"users",label:"Users & Roles",icon:"♙"},
+          {key:"documents",label:"Documents",icon:"□"},
+          {key:"settings",label:"School Settings",icon:"⚙"},
+          {key:"ai",label:"AI Assistant",icon:"✦"}
+          ];"""
+
+          p.write_text(s[:start] + menu + s[end:])
+          print("Fixed App.tsx menu definition")
+          PY
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
